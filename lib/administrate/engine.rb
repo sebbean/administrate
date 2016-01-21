@@ -8,6 +8,7 @@ require "normalize-rails"
 require "sass-rails"
 require "selectize-rails"
 require "sprockets/railtie"
+require "responders"
 
 require "administrate/page/form"
 require "administrate/page/show"

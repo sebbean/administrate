@@ -1,17 +1,23 @@
 module Administrate
   class ApplicationController < ActionController::Base
+    respond_to :json, :html
+
     def index
+      render locals: index_locals
+    end
+
+    def index_locals
       search_term = params[:search].to_s.strip
       resources = Administrate::Search.new(resource_resolver, search_term).run
       resources = order.apply(resources)
       resources = resources.page(params[:page]).per(records_per_page)
       page = Administrate::Page::Collection.new(dashboard, order: order)
 
-      render locals: {
+      {
         resources: resources,
         search_term: search_term,
         page: page,
-      }
+      }      
     end
 
     def show
@@ -49,10 +55,17 @@ module Administrate
 
     def update
       if requested_resource.update(resource_params)
-        redirect_to(
-          [namespace, requested_resource],
-          notice: translate_with_resource("update.success"),
-        )
+        respond_to do |format|
+          format.html {
+            redirect_to(
+              [namespace, requested_resource],
+              notice: translate_with_resource("update.success"),
+            )
+          }
+          format.json {
+            render json:requested_resource, status: :ok
+          }
+        end
       else
         render :edit, locals: {
           page: Administrate::Page::Form.new(dashboard, requested_resource),
